@@ -4,37 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class AuthController extends Controller
+class AuthorController extends Controller
 {
-    public function register(Request $r)
+    public function index() { return Author::all(); }
+
+    public function store(Request $r)
     {
-        $data = $r->validate([
-            'name'=>'required',
-            'email'=>'required|email|unique:users',
-            'password'=>'required|min:6'
-        ]);
-
-        $data['password'] = bcrypt($data['password']);
-
-        $user = User::create($data);
-
-        return $user->createToken('api')->plainTextToken;
+        $r->validate(['name'=>'required']);
+        return Author::create($r->all());
     }
 
-    public function login(Request $r)
+    public function show($id) { return Author::findOrFail($id); }
+
+    public function update(Request $r,$id)
     {
-        $user = User::where('email',$r->email)->first();
-
-        if(!$user || !Hash::check($r->password,$user->password)){
-            return response()->json(['error'=>'invalid'],401);
-        }
-
-        return $user->createToken('api')->plainTextToken;
+        $a = Author::findOrFail($id);
+        $a->update($r->all());
+        return $a;
     }
 
-    public function logout(Request $r)
-    {
-        $r->user()->tokens()->delete();
-        return ['message'=>'logged out'];
-    }
+    public function destroy($id) { Author::destroy($id); }
 }

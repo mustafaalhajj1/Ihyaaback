@@ -22,5 +22,4 @@ class FairEditionController extends Controller
         return $f;
     }
 
-    public function destroy($id) { FairEdition::destroy($id); }
-}
+    public function destroy($id) { FairEdition::destroy($id); }}

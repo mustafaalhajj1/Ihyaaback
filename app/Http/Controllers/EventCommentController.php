@@ -13,5 +13,4 @@ class EventCommentController extends Controller
             'event_id'=>$r->event_id,
             'comment'=>$r->comment
         ]);
-    }
-}
+    }}

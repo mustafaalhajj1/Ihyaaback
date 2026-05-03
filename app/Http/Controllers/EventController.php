@@ -10,6 +10,13 @@ class EventController extends Controller
 
     public function store(Request $r)
     {
+        $r->validate([
+            'title'=>'required',
+            'date'=>'required',
+            'time'=>'required',
+            'hall_id'=>'required'
+        ]);
+
         return Event::create($r->all());
     }
 

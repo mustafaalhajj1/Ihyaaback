@@ -6,11 +6,6 @@ use Illuminate\Http\Request;
 
 class EventBookingController extends Controller
 {
-    public function index()
-    {
-        return EventBooking::with(['user','event'])->get();
-    }
-
     public function store(Request $r)
     {
         return EventBooking::create([
@@ -19,8 +14,8 @@ class EventBookingController extends Controller
         ]);
     }
 
-    public function destroy($id)
+    public function index()
     {
-        EventBooking::destroy($id);
+        return EventBooking::with(['user','event'])->get();
     }
 }

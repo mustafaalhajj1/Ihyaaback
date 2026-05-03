@@ -10,7 +10,8 @@ class PermissionController extends Controller
 
     public function store(Request $r)
     {
-        return Permission::create($r->validate(['name'=>'required']));
+        $r->validate(['name'=>'required']);
+        return Permission::create($r->all());
     }
 
     public function show($id) { return Permission::findOrFail($id); }
