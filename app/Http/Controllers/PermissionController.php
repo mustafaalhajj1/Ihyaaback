@@ -2,26 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Permission;
 use Illuminate\Http\Request;
 
 class PermissionController extends Controller
 {
-    public function index() { return Permission::all(); }
-
-    public function store(Request $r)
+    // 🔹 عرض جميع الصلاحيات
+    public function index()
     {
-        $r->validate(['name'=>'required']);
-        return Permission::create($r->all());
+        $permissions = Permission::all();
+
+        return response()->json([
+            'status' => true,
+            'data' => $permissions
+        ], 200);
     }
 
-    public function show($id) { return Permission::findOrFail($id); }
-
-    public function update(Request $r,$id)
+    // 🔹 إنشاء صلاحية
+    public function store(Request $request)
     {
-        $p = Permission::findOrFail($id);
-        $p->update($r->all());
-        return $p;
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:permissions,name'
+        ]);
+
+        $permission = Permission::create($data);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permission created successfully',
+            'data' => $permission
+        ], 201);
     }
 
-    public function destroy($id) { Permission::destroy($id); }
+    // 🔹 عرض صلاحية واحدة
+    public function show($id)
+    {
+        $permission = Permission::findOrFail($id);
+
+        return response()->json([
+            'status' => true,
+            'data' => $permission
+        ], 200);
+    }
+
+    // 🔹 تحديث صلاحية
+    public function update(Request $request, $id)
+    {
+        $permission = Permission::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255|unique:permissions,name,' . $id
+        ]);
+
+        $permission->update($data);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permission updated successfully',
+            'data' => $permission
+        ], 200);
+    }
+
+    // 🔹 حذف صلاحية
+    public function destroy($id)
+    {
+        $permission = Permission::findOrFail($id);
+        $permission->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permission deleted successfully'
+        ], 200);
+    }
 }

@@ -8,28 +8,81 @@ use App\Http\Resources\BookResource;
 
 class BookController extends Controller
 {
+    // 🔹 عرض جميع الكتب
     public function index()
     {
-        return Book::with(['authors','categories','publishers'])->get();
+        $books = Book::with(['authors', 'categories', 'publishers'])->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => BookResource::collection($books)
+        ], 200);
     }
 
-    public function store(Request $r)
+    // 🔹 إنشاء كتاب
+    public function store(Request $request)
     {
-        $r->validate(['title'=>'required']);
-        return Book::create($r->all());
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'publication_year' => 'nullable|integer',
+            'language' => 'nullable|string|max:50'
+        ]);
+
+        $book = Book::create($data);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Book created successfully',
+            'data' => new BookResource($book)
+        ], 201);
     }
 
+    // 🔹 عرض كتاب واحد
     public function show($id)
     {
-        return Book::with(['authors','categories','publishers'])->findOrFail($id);
+        $book = Book::with(['authors', 'categories', 'publishers'])
+                    ->findOrFail($id);
+
+        return response()->json([
+            'status' => true,
+            'data' => new BookResource($book)
+        ], 200);
     }
 
-    public function update(Request $r,$id)
+    // 🔹 تحديث كتاب
+    public function update(Request $request, $id)
     {
-        $b = Book::findOrFail($id);
-        $b->update($r->all());
-        return $b;
+        $book = Book::findOrFail($id);
+
+        $data = $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
+            'publication_year' => 'nullable|integer',
+            'language' => 'nullable|string|max:50'
+        ]);
+
+        $book->update($data);
+
+        // إعادة تحميل العلاقات
+        $book->load(['authors', 'categories', 'publishers']);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Book updated successfully',
+            'data' => new BookResource($book)
+        ], 200);
     }
 
-    public function destroy($id) { Book::destroy($id); }
+    // 🔹 حذف كتاب
+    public function destroy($id)
+    {
+        $book = Book::findOrFail($id);
+        $book->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Book deleted successfully'
+        ], 200);
+    }
 }

@@ -2,47 +2,82 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Event;
+use App\Models\Author;
 use Illuminate\Http\Request;
 
 class EventAuthorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // 🔹 عرض كل المؤلفين لفعالية
+    public function index($eventId)
     {
-        //
+        $event = Event::with('authors')->findOrFail($eventId);
+
+        return response()->json([
+            'status' => true,
+            'data' => $event->authors
+        ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    // 🔹 ربط فعالية مع مؤلفين
+    public function store(Request $request, $eventId)
     {
-        //
+        $data = $request->validate([
+            'author_ids' => 'required|array',
+            'author_ids.*' => 'exists:authors,id'
+        ]);
+
+        $event = Event::findOrFail($eventId);
+
+        $event->authors()->syncWithoutDetaching($data['author_ids']);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Authors attached to event successfully'
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // 🔹 عرض مؤلف معين داخل فعالية
+    public function show($eventId, $authorId)
     {
-        //
+        $event = Event::findOrFail($eventId);
+
+        $author = $event->authors()->findOrFail($authorId);
+
+        return response()->json([
+            'status' => true,
+            'data' => $author
+        ], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    // 🔹 تحديث المؤلفين (استبدال كامل)
+    public function update(Request $request, $eventId)
     {
-        //
+        $data = $request->validate([
+            'author_ids' => 'required|array',
+            'author_ids.*' => 'exists:authors,id'
+        ]);
+
+        $event = Event::findOrFail($eventId);
+
+        $event->authors()->sync($data['author_ids']);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Event authors updated successfully'
+        ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    // 🔹 حذف علاقة مؤلف مع فعالية
+    public function destroy($eventId, $authorId)
     {
-        //
+        $event = Event::findOrFail($eventId);
+
+        $event->authors()->detach($authorId);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Author detached from event successfully'
+        ], 200);
     }
 }

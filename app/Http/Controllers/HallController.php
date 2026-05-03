@@ -2,25 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Hall;
 use Illuminate\Http\Request;
 
 class HallController extends Controller
 {
-    public function index() { return Hall::all(); }
-
-    public function store(Request $r)
+    // 🔹 عرض جميع القاعات
+    public function index()
     {
-        return Hall::create($r->validate(['name'=>'required']));
+        $halls = Hall::all();
+
+        return response()->json([
+            'status' => true,
+            'data' => $halls
+        ], 200);
     }
 
-    public function show($id) { return Hall::findOrFail($id); }
-
-    public function update(Request $r,$id)
+    // 🔹 إنشاء قاعة
+    public function store(Request $request)
     {
-        $h = Hall::findOrFail($id);
-        $h->update($r->all());
-        return $h;
+        $data = $request->validate([
+            'name' => 'required|string|max:255'
+        ]);
+
+        $hall = Hall::create($data);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Hall created successfully',
+            'data' => $hall
+        ], 201);
     }
 
-    public function destroy($id) { Hall::destroy($id); }
+    // 🔹 عرض قاعة واحدة
+    public function show($id)
+    {
+        $hall = Hall::findOrFail($id);
+
+        return response()->json([
+            'status' => true,
+            'data' => $hall
+        ], 200);
+    }
+
+    // 🔹 تحديث قاعة
+    public function update(Request $request, $id)
+    {
+        $hall = Hall::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255'
+        ]);
+
+        $hall->update($data);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Hall updated successfully',
+            'data' => $hall
+        ], 200);
+    }
+
+    // 🔹 حذف قاعة
+    public function destroy($id)
+    {
+        $hall = Hall::findOrFail($id);
+        $hall->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Hall deleted successfully'
+        ], 200);
+    }
 }

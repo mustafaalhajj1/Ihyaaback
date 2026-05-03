@@ -2,56 +2,80 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class BookCategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // 🔹 عرض كل التصنيفات لكتاب
+    public function index($bookId)
     {
-        //
-        afsdgjsdkfvjklasdj
-        dsaoksd
-        dvsdv
-        dvasvsd
-        dvsdvd
+        $book = Book::with('categories')->findOrFail($bookId);
+
+        return response()->json([
+            'status' => true,
+            'data' => $book->categories
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    // 🔹 ربط كتاب مع تصنيفات
+    public function store(Request $request, $bookId)
     {
-     fsadfafsd
-        //
+        $request->validate([
+            'category_ids' => 'required|array'
+        ]);
+
+        $book = Book::findOrFail($bookId);
+
+        $book->categories()->syncWithoutDetaching($request->category_ids);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Categories attached successfully'
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // 🔹 عرض تصنيف معين داخل كتاب
+    public function show($bookId, $categoryId)
     {
-        //
-        dsfasdf
+        $book = Book::findOrFail($bookId);
+
+        $category = $book->categories()->findOrFail($categoryId);
+
+        return response()->json([
+            'status' => true,
+            'data' => $category
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    // 🔹 تحديث التصنيفات (استبدال)
+    public function update(Request $request, $bookId)
     {
-        //
-        asdfasd
+        $request->validate([
+            'category_ids' => 'required|array'
+        ]);
+
+        $book = Book::findOrFail($bookId);
+
+        $book->categories()->sync($request->category_ids);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Categories updated successfully'
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    // 🔹 حذف علاقة معينة
+    public function destroy($bookId, $categoryId)
     {
-        //
-       sdjklsjvkljv
+        $book = Book::findOrFail($bookId);
+
+        $book->categories()->detach($categoryId);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Category detached successfully'
+        ]);
     }
 }

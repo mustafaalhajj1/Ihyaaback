@@ -2,26 +2,79 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
-    public function index() { return Role::with('permissions')->get(); }
-
-    public function store(Request $r)
+    // 🔹 عرض كل الأدوار مع الصلاحيات
+    public function index()
     {
-        $r->validate(['name'=>'required']);
-        return Role::create($r->all());
+        $roles = Role::with('permissions')->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $roles
+        ], 200);
     }
 
-    public function show($id) { return Role::findOrFail($id); }
+    // 🔹 إنشاء Role
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name'
+        ]);
 
-    public function update(Request $r,$id)
+        $role = Role::create($data);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role created successfully',
+            'data' => $role
+        ], 201);
+    }
+
+    // 🔹 عرض Role واحد
+    public function show($id)
+    {
+        $role = Role::with('permissions')->findOrFail($id);
+
+        return response()->json([
+            'status' => true,
+            'data' => $role
+        ], 200);
+    }
+
+    // 🔹 تحديث Role
+    public function update(Request $request, $id)
     {
         $role = Role::findOrFail($id);
-        $role->update($r->all());
-        return $role;
+
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255|unique:roles,name,' . $id
+        ]);
+
+        $role->update($data);
+
+        // إعادة تحميل العلاقات
+        $role->load('permissions');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role updated successfully',
+            'data' => $role
+        ], 200);
     }
 
-    public function destroy($id) { Role::destroy($id); }
+    // 🔹 حذف Role
+    public function destroy($id)
+    {
+        $role = Role::findOrFail($id);
+        $role->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role deleted successfully'
+        ], 200);
+    }
 }

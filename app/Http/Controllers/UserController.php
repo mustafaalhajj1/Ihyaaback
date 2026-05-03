@@ -2,20 +2,65 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index() { return User::with('role')->get(); }
-
-    public function show($id) { return User::with('role')->findOrFail($id); }
-
-    public function update(Request $r,$id)
+    // 🔹 عرض كل المستخدمين مع الأدوار
+    public function index()
     {
-        $u = User::findOrFail($id);
-        $u->update($r->all());
-        return $u;
+        $users = User::with('role')->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $users
+        ], 200);
     }
 
-    public function destroy($id) { User::destroy($id); }
+    // 🔹 عرض مستخدم واحد
+    public function show($id)
+    {
+        $user = User::with('role')->findOrFail($id);
+
+        return response()->json([
+            'status' => true,
+            'data' => $user
+        ], 200);
+    }
+
+    // 🔹 تحديث مستخدم
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255|unique:users,email,' . $id,
+            'role_id' => 'sometimes|exists:roles,id'
+        ]);
+
+        $user->update($data);
+
+        // إعادة تحميل العلاقة
+        $user->load('role');
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User updated successfully',
+            'data' => $user
+        ], 200);
+    }
+
+    // 🔹 حذف مستخدم
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User deleted successfully'
+        ], 200);
+    }
 }

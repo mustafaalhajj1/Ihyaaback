@@ -2,47 +2,82 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class RolePermissionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // 🔹 عرض كل الصلاحيات الخاصة بدور معين
+    public function index($roleId)
     {
-        //
+        $role = Role::with('permissions')->findOrFail($roleId);
+
+        return response()->json([
+            'status' => true,
+            'data' => $role->permissions
+        ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    // 🔹 ربط Role مع Permissions
+    public function store(Request $request, $roleId)
     {
-        //
+        $data = $request->validate([
+            'permission_ids' => 'required|array',
+            'permission_ids.*' => 'exists:permissions,id'
+        ]);
+
+        $role = Role::findOrFail($roleId);
+
+        // إضافة بدون حذف القديم
+        $role->permissions()->syncWithoutDetaching($data['permission_ids']);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permissions attached to role successfully'
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // 🔹 عرض Permission معين داخل Role
+    public function show($roleId, $permissionId)
     {
-        //
+        $role = Role::findOrFail($roleId);
+
+        $permission = $role->permissions()->findOrFail($permissionId);
+
+        return response()->json([
+            'status' => true,
+            'data' => $permission
+        ], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    // 🔹 تحديث كل permissions الخاصة بـ Role (استبدال كامل)
+    public function update(Request $request, $roleId)
     {
-        //
+        $data = $request->validate([
+            'permission_ids' => 'required|array',
+            'permission_ids.*' => 'exists:permissions,id'
+        ]);
+
+        $role = Role::findOrFail($roleId);
+
+        $role->permissions()->sync($data['permission_ids']);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Role permissions updated successfully'
+        ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    // 🔹 حذف Permission من Role
+    public function destroy($roleId, $permissionId)
     {
-        //
+        $role = Role::findOrFail($roleId);
+
+        $role->permissions()->detach($permissionId);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Permission removed from role successfully'
+        ], 200);
     }
 }
