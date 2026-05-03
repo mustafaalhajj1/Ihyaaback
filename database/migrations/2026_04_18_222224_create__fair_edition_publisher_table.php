@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-      Schema::create('fair_edition_publisher', function (Blueprint $table) {
+    Schema::create('fair_edition_publisher', function (Blueprint $table) {
     $table->foreignId('fair_edition_id')->constrained()->cascadeOnDelete();
     $table->foreignId('publisher_id')->constrained()->cascadeOnDelete();
 });
@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('_fair_edition_publisher');
+        Schema::dropIfExists('fair_edition_publisher');
     }
 };

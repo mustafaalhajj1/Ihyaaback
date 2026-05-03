@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-      Schema::create('booths', function (Blueprint $table) {
+    Schema::create('booths', function (Blueprint $table) {
     $table->id();
     $table->string('location_description');
     $table->foreignId('publisher_id')->constrained()->cascadeOnDelete();
